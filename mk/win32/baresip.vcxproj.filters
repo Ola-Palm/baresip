@@ -97,6 +97,9 @@
     <Filter Include="modules\winwave">
       <UniqueIdentifier>{e3bd480b-289e-4754-b1a2-55ea85a7ef45}</UniqueIdentifier>
     </Filter>
+    <Filter Include="modules\opus">
+      <UniqueIdentifier>{f85130c3-0801-4528-acbc-6e0ae841f990}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\baresip.h">
@@ -125,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="..\..\modules\winwave\winwave.h">
       <Filter>modules\winwave</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\opus\opus.h">
+      <Filter>modules\opus</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -357,6 +363,20 @@
     </ClCompile>
     <ClCompile Include="..\..\src\custom_hdrs.c">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\stunuri.c" />
+    <ClCompile Include="..\..\src\rtpstat.c" />
+    <ClCompile Include="..\..\modules\opus\decode.c">
+      <Filter>modules\opus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\opus\encode.c">
+      <Filter>modules\opus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\opus\opus.c">
+      <Filter>modules\opus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\opus\sdp.c">
+      <Filter>modules\opus</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

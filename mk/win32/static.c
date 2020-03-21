@@ -18,6 +18,7 @@ extern const struct mod_export exports_vidloop;
 extern const struct mod_export exports_vumeter;
 extern const struct mod_export exports_wincons;
 extern const struct mod_export exports_winwave;
+extern const struct mod_export exports_opus;
 
 
 const struct mod_export *mod_table[] = {
@@ -37,5 +38,6 @@ const struct mod_export *mod_table[] = {
 	&exports_vumeter,
 	&exports_wincons,
 	&exports_winwave,
+	&exports_opus,
 	NULL
 };

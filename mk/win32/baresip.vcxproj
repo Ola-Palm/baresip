@@ -14,18 +14,18 @@
     <ProjectName>baresip-win32</ProjectName>
     <ProjectGuid>{4B89C2D8-FB32-4D7C-9019-752A5664781C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -53,7 +53,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>include;..\..\include;..\..\..\re\include;..\..\..\rem\include;..\..\..\misc;..\..\..\dirent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;STATIC;HAVE_IO_H;HAVE_SELECT;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=1024;SHARE_PATH="/usr/share/baresip";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;STATIC;HAVE_GETOPT;HAVE_IO_H;HAVE_SELECT;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;SHARE_PATH="/usr/share/baresip";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -80,7 +80,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>include;..\..\include;..\..\..\re\include;..\..\..\rem\include;..\..\..\misc;..\..\..\dirent\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;STATIC;HAVE_IO_H;HAVE_SELECT;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=1024;SHARE_PATH="/usr/share/baresip";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;STATIC;HAVE_IO_H;HAVE_GETOPT;HAVE_SELECT;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;SHARE_PATH="/usr/share/baresip";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -115,6 +115,7 @@
     <ClInclude Include="..\..\modules\natpmp\libnatpmp.h" />
     <ClInclude Include="..\..\modules\presence\presence.h" />
     <ClInclude Include="..\..\modules\srtp\sdes.h" />
+    <ClInclude Include="..\..\modules\opus\opus.h" />
     <ClInclude Include="..\..\modules\vidbridge\vidbridge.h" />
     <ClInclude Include="..\..\modules\winwave\winwave.h" />
     <ClInclude Include="..\..\src\core.h" />
@@ -138,6 +139,10 @@
     <ClCompile Include="..\..\modules\httpd\httpd.c" />
     <ClCompile Include="..\..\modules\ice\ice.c" />
     <ClCompile Include="..\..\modules\l16\l16.c" />
+    <ClCompile Include="..\..\modules\opus\decode.c" />
+    <ClCompile Include="..\..\modules\opus\encode.c" />
+    <ClCompile Include="..\..\modules\opus\sdp.c" />
+    <ClCompile Include="..\..\modules\opus\opus.c" />
     <ClCompile Include="..\..\modules\menu\menu.c" />
     <ClCompile Include="..\..\modules\mwi\mwi.c" />
     <ClCompile Include="..\..\modules\natpmp\libnatpmp.c" />
@@ -193,6 +198,8 @@
     <ClCompile Include="..\..\src\timer.c" />
     <ClCompile Include="..\..\src\ua.c" />
     <ClCompile Include="..\..\src\ui.c" />
+    <ClCompile Include="..\..\src\stunuri.c" />
+    <ClCompile Include="..\..\src\rtpstat.c" />
     <ClCompile Include="..\..\src\vidcodec.c" />
     <ClCompile Include="..\..\src\video.c" />
     <ClCompile Include="..\..\src\vidfilt.c" />
