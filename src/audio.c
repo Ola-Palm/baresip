@@ -192,12 +192,15 @@ struct audio {
 /* RFC 6464 */
 static const char *uri_aulevel = "urn:ietf:params:rtp-hdrext:ssrc-audio-level";
 
+
 uint64_t audio_jb_current_value(const struct audio* au)
 {
 	if (!au)
 		return 0;
 	return au->rx.stats.aubuf_current_jb;
 }
+
+
 static double autx_calc_seconds(const struct autx *autx)
 {
 	uint64_t dur;
@@ -547,9 +550,7 @@ static void poll_aubuf_tx(struct audio *a)
 		sampc = sampc_rs;
 	}
 
-	af.fmt = tx->enc_fmt;
-	af.sampv = sampv;
-	af.sampc = sampc;
+	auframe_init(&af, tx->enc_fmt, sampv, sampc);
 
 	/* Process exactly one audio-frame in list order */
 	for (le = tx->filtl.head; le; le = le->next) {
@@ -776,9 +777,7 @@ static int aurx_stream_decode(struct aurx *rx, bool marker,
 		sampc = 0;
 	}
 
-	af.fmt   = rx->dec_fmt;
-	af.sampv = rx->sampv;
-	af.sampc = sampc;
+	auframe_init(&af, rx->dec_fmt, rx->sampv, sampc);
 
 	/* Process exactly one audio-frame in reverse list order */
 	for (le = rx->filtl.tail; le; le = le->prev) {
