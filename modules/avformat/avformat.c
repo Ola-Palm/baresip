@@ -13,6 +13,7 @@
 #include <baresip.h>
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
+#include <libavdevice/avdevice.h>
 #include "mod_avformat.h"
 
 
@@ -78,17 +79,21 @@ static void *read_thread(void *data)
 		for (;;) {
 			double xts;
 
+			if (!st->run)
+				break;
+
 			if (st->au.idx >=0 && st->vid.idx >=0)
 				xts = min(auts, vidts);
 			else if (st->au.idx >=0)
 				xts = auts;
-			else if (st->au.idx >=0)
+			else if (st->vid.idx >=0)
 				xts = vidts;
 			else
 				break;
 
-			if (now < (offset + xts))
-				break;
+			if (!(st->is_realtime))
+				if (now < (offset + xts))
+					break;
 
 			av_init_packet(&pkt);
 
@@ -180,9 +185,16 @@ static int open_codec(struct stream *s, const struct AVStream *strm, int i,
 }
 
 
-int avformat_shared_alloc(struct shared **shp, const char *dev)
+int avformat_shared_alloc(struct shared **shp, const char *dev,
+			  const double fps, const struct vidsz *size,
+			  bool video)
 {
 	struct shared *st;
+	struct pl pl_fmt, pl_dev;
+	char *device = NULL;
+	AVInputFormat *input_format = NULL;
+	AVDictionary *format_opts = NULL;
+	char buf[16];
 	unsigned i;
 	int err;
 	int ret;
@@ -199,11 +211,68 @@ int avformat_shared_alloc(struct shared **shp, const char *dev)
 	st->au.idx  = -1;
 	st->vid.idx = -1;
 
+	if (0 == re_regex(dev, str_len(dev), "[^,]+,[^]+", &pl_fmt, &pl_dev)) {
+
+		char format[32];
+
+		pl_strcpy(&pl_fmt, format, sizeof(format));
+
+		pl_strdup(&device, &pl_dev);
+		dev = device;
+
+		st->is_realtime =
+			0==strcmp(format, "avfoundation") ||
+			0==strcmp(format, "android_camera") ||
+			0==strcmp(format, "v4l2");
+
+		input_format = av_find_input_format(format);
+		if (input_format) {
+			debug("avformat: using format '%s' (%s)\n",
+			      input_format->name, input_format->long_name);
+		}
+		else {
+			warning("avformat: input format not found (%s)\n",
+				format);
+		}
+	}
+
 	err = lock_alloc(&st->lock);
 	if (err)
 		goto out;
 
-	ret = avformat_open_input(&st->ic, dev, NULL, NULL);
+	if (video && size->w) {
+		re_snprintf(buf, sizeof(buf), "%dx%d", size->w, size->h);
+		ret = av_dict_set(&format_opts, "video_size", buf, 0);
+		if (ret != 0) {
+			warning("avformat: av_dict_set(video_size) failed"
+				" (ret=%s)\n", av_err2str(ret));
+			err = ENOENT;
+			goto out;
+		}
+	}
+
+	if (video && fps) {
+		re_snprintf(buf, sizeof(buf), "%2.f", fps);
+		ret = av_dict_set(&format_opts, "framerate", buf, 0);
+		if (ret != 0) {
+			warning("avformat: av_dict_set(framerate) failed"
+				" (ret=%s)\n", av_err2str(ret));
+			err = ENOENT;
+			goto out;
+		}
+	}
+
+	if (video && device) {
+		ret = av_dict_set(&format_opts, "camera_index", device, 0);
+		if (ret != 0) {
+			warning("avformat: av_dict_set(camera_index) failed"
+				" (ret=%s)\n", av_err2str(ret));
+			err = ENOENT;
+			goto out;
+		}
+	}
+
+	ret = avformat_open_input(&st->ic, dev, input_format, &format_opts);
 	if (ret < 0) {
 		warning("avformat: avformat_open_input(%s) failed (ret=%s)\n",
 			dev, av_err2str(ret));
@@ -267,6 +336,10 @@ int avformat_shared_alloc(struct shared **shp, const char *dev)
 	else
 		*shp = st;
 
+	mem_deref(device);
+
+	av_dict_free(&format_opts);
+
 	return err;
 }
 
@@ -298,6 +371,8 @@ static int module_init(void)
 	int err;
 
 	avformat_network_init();
+
+	avdevice_register_all();
 
 	err  = ausrc_register(&ausrc, baresip_ausrcl(),
 			      "avformat", avformat_audio_alloc);

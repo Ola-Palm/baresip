@@ -42,6 +42,7 @@ static enum vidfmt avpixfmt_to_vidfmt(enum AVPixelFormat pix_fmt)
 	case AV_PIX_FMT_NV12:     return VID_FMT_NV12;
 	case AV_PIX_FMT_NV21:     return VID_FMT_NV21;
 	case AV_PIX_FMT_UYVY422:  return VID_FMT_UYVY422;
+	case AV_PIX_FMT_YUYV422:  return VID_FMT_YUYV422;
 	default:                  return (enum vidfmt)-1;
 	}
 }
@@ -76,7 +77,8 @@ int avformat_video_alloc(struct vidsrc_st **stp, const struct vidsrc *vs,
 		st->shared = mem_ref(*ctx);
 	}
 	else {
-		err = avformat_shared_alloc(&st->shared, dev);
+		err = avformat_shared_alloc(&st->shared, dev,
+					    prm->fps, size, true);
 		if (err)
 			goto out;
 
@@ -104,7 +106,7 @@ int avformat_video_alloc(struct vidsrc_st **stp, const struct vidsrc *vs,
 
 void avformat_video_decode(struct shared *st, AVPacket *pkt)
 {
-	const AVRational tb = st->vid.time_base;
+	AVRational tb;
 	struct vidframe vf;
 	AVFrame *frame;
 	uint64_t timestamp;
@@ -116,6 +118,8 @@ void avformat_video_decode(struct shared *st, AVPacket *pkt)
 
 	if (!st || !st->vid.ctx)
 		return;
+
+	tb = st->vid.time_base;
 
 	frame = av_frame_alloc();
 	if (!frame)

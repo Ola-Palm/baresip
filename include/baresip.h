@@ -13,7 +13,7 @@ extern "C" {
 
 
 /** Defines the Baresip version string */
-#define BARESIP_VERSION "0.6.5"
+#define BARESIP_VERSION "0.6.6"
 
 
 #ifndef NET_MAX_NS
@@ -1179,7 +1179,7 @@ void audio_level_put(const struct audio *au, bool tx, double lvl);
 int  audio_level_get(const struct audio *au, double *level);
 int  audio_debug(struct re_printf *pf, const struct audio *a);
 struct stream *audio_strm(const struct audio *au);
-uint64_t audio_jb_current_value(const struct audio* au);
+uint64_t audio_jb_current_value(const struct audio *au);
 int  audio_set_bitrate(struct audio *au, uint32_t bitrate);
 bool audio_rxaubuf_started(const struct audio *au);
 int  audio_start(struct audio *a);
@@ -1238,9 +1238,9 @@ const struct vidcodec *video_codec(const struct video *vid, bool tx);
 
 /** Common parameters for media stream */
 struct stream_param {
-	bool use_rtp;
-	int af;
-	const char *cname;
+	bool use_rtp;       /**< Enable or disable RTP */
+	int af;             /**< Wanted address family */
+	const char *cname;  /**< Canonical name        */
 };
 
 typedef void (stream_mnatconn_h)(struct stream *strm, void *arg);
@@ -1275,17 +1275,19 @@ int  stream_debug(struct re_printf *pf, const struct stream *s);
  * STUN URI
  */
 
+/** Defines the STUN uri scheme */
 enum stun_scheme {
-	STUN_SCHEME_STUN,
-	STUN_SCHEME_STUNS,
-	STUN_SCHEME_TURN,
-	STUN_SCHEME_TURNS,
+	STUN_SCHEME_STUN,  /**< STUN scheme        */
+	STUN_SCHEME_STUNS, /**< Secure STUN scheme */
+	STUN_SCHEME_TURN,  /**< TURN scheme        */
+	STUN_SCHEME_TURNS, /**< Secure TURN scheme */
 };
 
+/** Defines a STUN/TURN uri */
 struct stun_uri {
-	enum stun_scheme scheme;
-	char *host;
-	uint16_t port;
+	enum stun_scheme scheme;  /**< STUN Scheme            */
+	char *host;               /**< Hostname or IP-address */
+	uint16_t port;            /**< Port number            */
 };
 
 int stunuri_decode(struct stun_uri **sup, const struct pl *pl);
