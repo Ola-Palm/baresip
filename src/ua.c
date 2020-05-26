@@ -56,7 +56,7 @@ static struct {
 	bool use_udp;                  /**< Use UDP transport               */
 	bool use_tcp;                  /**< Use TCP transport               */
 	bool use_tls;                  /**< Use TLS transport               */
-	bool delayed_close;
+	bool delayed_close;            /**< Module will close SIP stack     */
 	sip_msg_h *subh;               /**< Subscribe handler               */
 	ua_exit_h *exith;              /**< UA Exit handler                 */
 	void *arg;                     /**< UA Exit handler argument        */
@@ -395,7 +395,7 @@ static void call_event_handler(struct call *call, enum call_event ev,
 			break;
 
 		case ANSWERMODE_AUTO:
-			(void)call_answer(call, 200);
+			(void)call_answer(call, 200, VIDMODE_ON);
 			break;
 
 		case ANSWERMODE_MANUAL:
@@ -972,12 +972,13 @@ void ua_hangup(struct ua *ua, struct call *call,
 /**
  * Answer an incoming call
  *
- * @param ua   User-Agent
- * @param call Call to answer, or NULL for current call
+ * @param ua    User-Agent
+ * @param call  Call to answer, or NULL for current call
+ * @param vmode Wanted video mode
  *
  * @return 0 if success, otherwise errorcode
  */
-int ua_answer(struct ua *ua, struct call *call)
+int ua_answer(struct ua *ua, struct call *call, enum vidmode vmode)
 {
 	if (!ua)
 		return EINVAL;
@@ -988,19 +989,20 @@ int ua_answer(struct ua *ua, struct call *call)
 			return ENOENT;
 	}
 
-	return call_answer(call, 200);
+	return call_answer(call, 200, vmode);
 }
 
 
 /**
  * Put the current call on hold and answer the incoming call
  *
- * @param ua   User-Agent
- * @param call Call to answer, or NULL for current call
+ * @param ua    User-Agent
+ * @param call  Call to answer, or NULL for current call
+ * @param vmode Wanted video mode for the incoming call
  *
  * @return 0 if success, otherwise errorcode
  */
-int ua_hold_answer(struct ua *ua, struct call *call)
+int ua_hold_answer(struct ua *ua, struct call *call, enum vidmode vmode)
 {
 	struct call *pcall;
 	int err;
@@ -1025,7 +1027,7 @@ int ua_hold_answer(struct ua *ua, struct call *call)
 			return err;
 	}
 
-	return ua_answer(ua, call);
+	return ua_answer(ua, call, vmode);
 }
 
 
@@ -1233,6 +1235,66 @@ int ua_debug(struct re_printf *pf, const struct ua *ua)
 	for (le = ua->regl.head; le; le = le->next)
 		err |= reg_debug(pf, le->data);
 
+	return err;
+}
+
+
+/**
+ * Print the user-agent information in JSON
+ *
+ * @param od  User-Agent dict
+ * @param ua  User-Agent object
+ *
+ * @return 0 if success, otherwise errorcode
+ */
+int ua_state_json_api(struct odict *od, const struct ua *ua)
+{
+	struct odict *reg = NULL;
+	struct odict *cfg = NULL;
+	struct le *le;
+	size_t i = 0;
+	int err = 0;
+
+	if (!ua)
+		return 0;
+
+	err |= odict_alloc(&reg, 8);
+	err |= odict_alloc(&cfg, 8);
+
+	/* user-agent info */
+	err |= odict_entry_add(od, "cuser", ODICT_STRING, ua->cuser);
+	err |= odict_entry_add(od, "selected_ua", ODICT_BOOL,
+			ua == uag_current());
+
+	/* account info */
+	err |= account_json_api(od, cfg, ua->acc);
+	if (err)
+		warning("ua: failed to encode json account (%m)\n", err);
+
+	/* registration info */
+	for (le = list_head(&ua->regl); le; le = le->next) {
+		struct reg *regm = le->data;
+		err |= reg_json_api(reg, regm);
+		++i;
+	}
+	if (i > 1)
+		warning("ua: multiple registrations for one account");
+
+	err |= odict_entry_add(reg, "interval", ODICT_INT,
+			(int64_t) ua->acc->regint);
+	err |= odict_entry_add(reg, "q_value", ODICT_DOUBLE, ua->acc->regq);
+
+	if (err)
+		warning("ua: failed to encode json registration (%m)\n", err);
+
+	/* package */
+	err |= odict_entry_add(od, "settings", ODICT_OBJECT, cfg);
+	err |= odict_entry_add(od, "registration", ODICT_OBJECT, reg);
+	if (err)
+		warning("ua: failed to encode json package (%m)\n", err);
+
+	mem_deref(cfg);
+	mem_deref(reg);
 	return err;
 }
 

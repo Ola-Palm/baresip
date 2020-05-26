@@ -54,7 +54,7 @@ struct account {
 
 	/* parameters: */
 	enum answermode answermode;  /**< Answermode for incoming calls      */
-	struct le acv[8];            /**< List elements for aucodecl         */
+	struct le acv[16];           /**< List elements for aucodecl         */
 	struct list aucodecl;        /**< List of preferred audio-codecs     */
 	char *auth_user;             /**< Authentication username            */
 	char *auth_pass;             /**< Authentication password            */
@@ -220,6 +220,7 @@ int  reg_register(struct reg *reg, const char *reg_uri,
 void reg_unregister(struct reg *reg);
 bool reg_isok(const struct reg *reg);
 int  reg_debug(struct re_printf *pf, const struct reg *reg);
+int  reg_json_api(struct odict *od, const struct reg *reg);
 int  reg_status(struct re_printf *pf, const struct reg *reg);
 int  reg_af(const struct reg *reg);
 
@@ -379,7 +380,6 @@ bool video_is_started(const struct video *v);
 int  video_decoder_set(struct video *v, struct vidcodec *vc, int pt_rx,
 		       const char *fmtp);
 void video_update_picture(struct video *v);
-void video_sdp_attr_decode(struct video *v);
 int  video_print(struct re_printf *pf, const struct video *v);
 
 

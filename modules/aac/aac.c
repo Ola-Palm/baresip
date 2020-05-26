@@ -77,7 +77,7 @@ static struct aucodec aac = {
 void aac_encode_fmtp(const struct aac_param *prm)
 {
 	(void)re_snprintf(fmtp_local, sizeof(fmtp_local),
-	                  "streamType=5"
+	                  "streamType=%d"
 	                  "; profile-level-id=%u"
 	                  "; config=%s"
 	                  "; mode=%s"
@@ -86,9 +86,10 @@ void aac_encode_fmtp(const struct aac_param *prm)
 	                  "; indexLength=%u"
 	                  "; indexDeltaLength=%u"
 	                  "; bitrate=%u",
+			  AAC_STREAMTYPE_AUDIO,
 	                  prm->profile_level_id, prm->config, "AAC-hbr",
-	                  prm->constantduration, SIZELENGTH,
-	                  INDEXLENGTH, INDEXDELTALENGTH,
+	                  prm->constantduration, AAC_SIZELENGTH,
+	                  AAC_INDEXLENGTH, AAC_INDEXDELTALENGTH,
 	                  prm->bitrate);
 }
 

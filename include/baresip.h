@@ -59,6 +59,8 @@ struct account;
 
 int account_alloc(struct account **accp, const char *sipaddr);
 int account_debug(struct re_printf *pf, const struct account *acc);
+int account_json_api(struct odict *odacc, struct odict *odcfg,
+		 const struct account *acc);
 int account_set_auth_user(struct account *acc, const char *user);
 int account_set_auth_pass(struct account *acc, const char *pass);
 int account_set_outbound(struct account *acc, const char *ob, unsigned ix);
@@ -71,6 +73,7 @@ int account_set_stun_port(struct account *acc, uint16_t port);
 int account_set_mediaenc(struct account *acc, const char *mediaenc);
 int account_set_medianat(struct account *acc, const char *medianat);
 int account_set_audio_codecs(struct account *acc, const char *codecs);
+int account_set_video_codecs(struct account *acc, const char *codecs);
 int account_set_mwi(struct account *acc, const char *value);
 int account_set_call_transfer(struct account *acc, const char *value);
 int account_auth(const struct account *acc, char **username, char **password,
@@ -146,6 +149,12 @@ enum call_event {
 	CALL_EVENT_MENC,
 };
 
+/** Video mode */
+enum vidmode {
+	VIDMODE_OFF = 0,    /**< Video disabled                */
+	VIDMODE_ON,         /**< Video enabled                 */
+};
+
 struct call;
 
 typedef void (call_event_h)(struct call *call, enum call_event ev,
@@ -153,7 +162,7 @@ typedef void (call_event_h)(struct call *call, enum call_event ev,
 typedef void (call_dtmf_h)(struct call *call, char key, void *arg);
 
 int  call_connect(struct call *call, const struct pl *paddr);
-int  call_answer(struct call *call, uint16_t scode);
+int  call_answer(struct call *call, uint16_t scode, enum vidmode vmode);
 int  call_progress(struct call *call);
 void call_hangup(struct call *call, uint16_t scode, const char *reason);
 int  call_modify(struct call *call);
@@ -209,6 +218,7 @@ int custom_hdrs_apply(const struct list *hdrs, custom_hdrs_h *h, void *arg);
 typedef int (confline_h)(const struct pl *addr, void *arg);
 
 int  conf_configure(void);
+int  conf_configure_buf(const uint8_t *buf, size_t sz);
 int  conf_modules(void);
 void conf_path_set(const char *path);
 int  conf_path_get(char *path, size_t sz);
@@ -712,12 +722,6 @@ enum ua_event {
 	UA_EVENT_MAX,
 };
 
-/** Video mode */
-enum vidmode {
-	VIDMODE_OFF = 0,    /**< Video disabled                */
-	VIDMODE_ON,         /**< Video enabled                 */
-};
-
 /** Defines the User-Agent event handler */
 typedef void (ua_event_h)(struct ua *ua, enum ua_event ev,
 			  struct call *call, const char *prm, void *arg);
@@ -732,11 +736,12 @@ int  ua_connect(struct ua *ua, struct call **callp,
 		enum vidmode vmode);
 void ua_hangup(struct ua *ua, struct call *call,
 	       uint16_t scode, const char *reason);
-int  ua_answer(struct ua *ua, struct call *call);
-int  ua_hold_answer(struct ua *ua, struct call *call);
+int  ua_answer(struct ua *ua, struct call *call, enum vidmode vmode);
+int  ua_hold_answer(struct ua *ua, struct call *call, enum vidmode vmode);
 int  ua_options_send(struct ua *ua, const char *uri,
 		     options_resp_h *resph, void *arg);
 int  ua_debug(struct re_printf *pf, const struct ua *ua);
+int  ua_state_json_api(struct odict *od, const struct ua *ua);
 int  ua_print_calls(struct re_printf *pf, const struct ua *ua);
 int  ua_print_status(struct re_printf *pf, const struct ua *ua);
 int  ua_print_supported(struct re_printf *pf, const struct ua *ua);
@@ -1219,6 +1224,7 @@ int  video_encoder_set(struct video *v, struct vidcodec *vc,
 int  video_start_source(struct video *v, struct media_ctx **ctx);
 int  video_start_display(struct video *v, const char *peer);
 void video_stop(struct video *v);
+void video_stop_display(struct video *v);
 int   video_set_fullscreen(struct video *v, bool fs);
 void  video_vidsrc_set_device(struct video *v, const char *dev);
 int   video_set_source(struct video *v, const char *name, const char *dev);
@@ -1230,6 +1236,7 @@ struct stream *video_strm(const struct video *v);
 double video_timestamp_to_seconds(uint64_t timestamp);
 uint64_t video_calc_timebase_timestamp(uint64_t rtp_ts);
 const struct vidcodec *video_codec(const struct video *vid, bool tx);
+void video_sdp_attr_decode(struct video *v);
 
 
 /*
@@ -1447,7 +1454,7 @@ static inline bool h264_is_keyframe(int type)
 
 
 int  module_preload(const char *module);
-int  module_load(const char *name);
+int  module_load(const char *path, const char *name);
 void module_unload(const char *name);
 void module_app_unload(void);
 
