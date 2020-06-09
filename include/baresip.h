@@ -13,7 +13,7 @@ extern "C" {
 
 
 /** Defines the Baresip version string */
-#define BARESIP_VERSION "0.6.6"
+#define BARESIP_VERSION "1.0.0"
 
 
 #ifndef NET_MAX_NS
@@ -319,6 +319,7 @@ struct config_net {
 	char ifname[64];        /**< Bind to interface (optional)   */
 	struct {
 		char addr[64];
+		bool fallback;
 	} nsv[NET_MAX_NS];      /**< Configured DNS nameservers     */
 	size_t nsc;             /**< Number of DNS nameservers      */
 };
