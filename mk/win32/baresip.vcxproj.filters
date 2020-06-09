@@ -100,6 +100,9 @@
     <Filter Include="modules\opus">
       <UniqueIdentifier>{f85130c3-0801-4528-acbc-6e0ae841f990}</UniqueIdentifier>
     </Filter>
+    <Filter Include="modules\ctrl_tcp">
+      <UniqueIdentifier>{6d32ea1f-58d9-4e58-aa93-b9a14bdd2790}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\baresip.h">
@@ -131,6 +134,12 @@
     </ClInclude>
     <ClInclude Include="..\..\modules\opus\opus.h">
       <Filter>modules\opus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\modules\ctrl_tcp\netstring\netstring.h">
+      <Filter>modules\ctrl_tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\modules\modules\ctrl_tcp\tcp_netstring.h">
+      <Filter>modules\ctrl_tcp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -377,6 +386,15 @@
     </ClCompile>
     <ClCompile Include="..\..\modules\opus\sdp.c">
       <Filter>modules\opus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\ctrl_tcp\netstring\netstring.c">
+      <Filter>modules\ctrl_tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\ctrl_tcp\ctrl_tcp.c">
+      <Filter>modules\ctrl_tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\modules\ctrl_tcp\tcp_netstring.c">
+      <Filter>modules\ctrl_tcp</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
